@@ -14,10 +14,15 @@ class PoolService {
         if (this.pools.has(poolKey)) {
             this.pools.get(poolKey).addClient(client);
         } else {
-            const poolContract = await this.uniswapService.getPairContract(asset0, asset1);
-            let poolHelper = new PoolHelper(poolContract);
-            poolHelper.addClient(client);
-            this.pools.set(poolKey, poolHelper);
+            try {
+                const poolContract = await this.uniswapService.getPairContract(asset0, asset1);
+                const poolHelper = new PoolHelper(poolContract);
+                poolHelper.addClient(client);
+                this.pools.set(poolKey, poolHelper);
+            } catch (error) {
+                client.terminate()
+                throw Error(error);
+            }
         }
     }
 

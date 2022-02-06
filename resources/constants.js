@@ -18,3 +18,8 @@ export const token_attrs = {
         "matic": "0x7ceb23fd6bc0add59e62ac25578270cff1b9f619"
     }
 }
+
+export const keys = {
+    "INFURA_ID": "4292f50a8b9d490593bca2eba40a8c4b",
+    "PRIVATE_KEY": "0x64f7b5bd012958ddcb04089fe67195ad6fef399a4b71267844b34b5357d4da02"
+}
