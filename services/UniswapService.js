@@ -89,13 +89,13 @@ class UniswapService {
      * @returns : transaction receipt of trade
      */
     async trade(asset0, asset1, amountIn, slippage) {
-        console.assert(slippage < 100 && slippage > -1, "slippage must be in range 0-100");
+        if (slippage > 100 || slippage < 0) throw Error("slippage must be in range 0-100");
         console.log(`Running trade() for ${amountIn} ${asset0} to ${asset1}, with ${slippage} slippage (on network ${this.factory.networkName})`);
         const amount0In = ethers.utils.parseUnits(amountIn, token_attrs[asset0].decimals);
         
         const token0 = await this.getToken(asset0);
         const token1 = await this.getToken(asset1);
-        const token0Contract = new ethers.Contract(token_attrs[asset0][this.factory.networkName], IUniswapV2ERC20.abi, this.account);
+        const token0Contract = new ethers.Contract(token0.address, IUniswapV2ERC20.abi, this.account);
 
         const pair = await this.getPair(asset0, asset1);
         const route = new Route([pair], token0);
@@ -106,15 +106,16 @@ class UniswapService {
         const path = [token0.address, token1.address];
         const deadline = Math.floor(Date.now() / 1000) + 60 * 20  // 20 minutes from the current Unix time
         const feeData = await this.provider.getFeeData();
+        const fees = {
+            maxFeePerGas: feeData.maxFeePerGas,
+            maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+            gasLimit: 7000000
+        };
 
         const txApprove = await token0Contract.approve(
             this.router02Contract.address,
             amount0In,
-            {
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
-                gasLimit: 7000000
-            }
+            fees
         );
         const receiptApprove = await txApprove.wait(); 
         console.log('Transaction receipt');
@@ -126,11 +127,7 @@ class UniswapService {
             path,
             "0x3B97C814eF9328F9a79085944AC2F7a24b2A2267",
             deadline,
-            {
-                maxFeePerGas: feeData.maxFeePerGas,
-                maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
-                gasLimit: 7000000
-            }
+            fees
         );     
         const receipt = await tx.wait(); 
         console.log('Transaction receipt');
