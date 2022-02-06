@@ -13,16 +13,18 @@ const server = app.listen(port, () => {
 });
 FeedWebsocket(server);
 
-app.get("/price/:asset1/:asset2", async (req, res, next) => {
+app.get("/price/:asset0/:asset1", async (req, res, next) => {
 
     try {
+        const asset0 = req.params.asset0;
         const asset1 = req.params.asset1;
-        const asset2 = req.params.asset2;
-        const [reserve0, reserve1] = await service.getPrice(asset1, asset2);
-        res.send({
-            [asset1]: reserve0, 
-            [asset2]: reserve1
-        });
+        // const [reserve0, reserve1] = await service.getPrice(asset0, asset1);
+        // res.send({
+        //     [asset0]: reserve0, 
+        //     [asset1]: reserve1
+        // });
+        const data = await service.getPrice(asset0, asset1);
+        res.send(data);
 
     } catch (error) {
         return next(error)

@@ -1,6 +1,4 @@
 import { WebSocketServer } from "ws";
-import { v4 as uuidv4 } from "uuid";
-import queryString from "query-string";
 import url from 'url';
 
 import UniswapService from "../services/UniswapService.js";

@@ -1,6 +1,7 @@
 import { Trade, TradeType, TokenAmount, Fetcher, Route, ChainId, Percent } from "@uniswap/sdk";
 import { ethers } from "ethers";
 import { token_attrs } from "../resources/constants.js"
+import GraphQueryService from "./GraphQueryService.js";
 
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -23,6 +24,8 @@ class UniswapService {
         this.router02Addr = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
         this.factoryContract = new ethers.Contract(factoryAddr, IUniswapV2Factory.abi, this.account);
         this.router02Contract = new ethers.Contract(this.router02Addr, IUniswapV2Router02.abi, this.account);
+
+        this.graphQueryService = new GraphQueryService();
     }
 
     toHex(amount) {
@@ -44,11 +47,17 @@ class UniswapService {
     async getPrice(asset0, asset1) {
         console.log(`Running getPrice() for ${asset0}/${asset1}`)
 
-        const pairContract = await this.createPairContract(asset0, asset1);
-        const reserves = await pairContract.getReserves();
-        const reserve0 = ethers.utils.formatUnits(reserves.reserve0, token_attrs[asset0].decimals);
-        const reserve1 = ethers.utils.formatUnits(reserves.reserve1, token_attrs[asset1].decimals)
-        return [reserve0, reserve1];
+        const tokenAddr0 = ethers.utils.getAddress(token_attrs[asset0].address);
+        const tokenAddr1 = ethers.utils.getAddress(token_attrs[asset1].address);
+
+        const data = await this.graphQueryService.getPriceDataForPair(tokenAddr0, tokenAddr1);
+        return data;
+
+        // const pairContract = await this.getPairContract(asset0, asset1);
+        // const reserves = await pairContract.getReserves();
+        // const reserve0 = ethers.utils.formatUnits(reserves.reserve0, token_attrs[asset0].decimals);
+        // const reserve1 = ethers.utils.formatUnits(reserves.reserve1, token_attrs[asset1].decimals)
+        // return [reserve0, reserve1];
     }
 
     async trade(asset0, asset1, amountIn, slippage) {
