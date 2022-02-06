@@ -1,0 +1,22 @@
+{
+  "name": "uniswap_challenge",
+  "version": "1.0.0",
+  "description": "GSR DeFi Application Challenge",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Daniel Harris",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@uniswap/sdk": "^3.0.3",
+    "@uniswap/v2-core": "^1.0.1",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
+    "ethers": "^5.5.4",
+    "express": "^4.17.2",
+    "query-string": "^7.1.0",
+    "uuid": "^8.3.2",
+    "ws": "^8.4.2"
+  }
+}
