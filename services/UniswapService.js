@@ -17,7 +17,7 @@ class UniswapService {
         const signer = new ethers.Wallet(privateKey);
 
         this.factory = factory;
-        this.provider = new ethers.providers.getDefaultProvider({ name: factory.networkName, chainId: factory.chainId });
+        this.provider = new ethers.providers.InfuraProvider(factory.networkName, "4292f50a8b9d490593bca2eba40a8c4b");
         this.account = signer.connect(this.provider);
 
         this.factoryContract = new ethers.Contract(factory.factoryAddr, IUniswapV2Factory.abi, this.account);

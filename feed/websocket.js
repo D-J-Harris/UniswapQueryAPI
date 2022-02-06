@@ -18,7 +18,7 @@ export default (expressServer) => {
 
     websocketServer.on("connection", (client, req) => {
         const params = url.parse(req.url, true).query;
-        client.send(JSON.stringify({message: `Connected with ${params.asset0}/${params.asset1}`}));
+        client.send(JSON.stringify({message: `Connected to ${params.factory} with ${params.asset0}/${params.asset1}`}));
 
         const factory = new Factory(params.factory);
         const poolService = new PoolService(factory);

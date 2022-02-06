@@ -24,9 +24,12 @@ class GraphQueryService {
                 id
                 symbol
                 }
+                token0Price
+                token1Price
+                reserveUSD
+                volumeUSD
             }
         }`
-        console.log(tokensQuery);
         try {
             const result = await this.client.query(tokensQuery).toPromise();
             console.log(result.data);
