@@ -1,5 +1,5 @@
 
-class PoolHelper {
+class Pool {
 
     constructor(contract) {
         this.contract = contract;
@@ -67,4 +67,4 @@ class PoolHelper {
     }
 }
 
-export default PoolHelper;
+export default Pool;

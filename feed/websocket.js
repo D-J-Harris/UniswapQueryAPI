@@ -1,9 +1,14 @@
 import { WebSocketServer } from "ws";
 import url from 'url';
 
-import PoolService from "./PoolService.js"
+import Pools from "./Pools.js"
 import Factory from "../resources/factories.js";
 
+/**
+ * websocket server hooked into the Express server.
+ * client on connection/close actions additionally update a PoolService, tracking clients listening
+ * to pool updates for that factory/pool combination
+ */
 export default (expressServer) => {
     const websocketServer = new WebSocketServer({
         noServer: true,
@@ -21,11 +26,11 @@ export default (expressServer) => {
         client.send(JSON.stringify({message: `Connected to ${params.factory} with ${params.asset0}/${params.asset1}`}));
 
         const factory = new Factory(params.factory);
-        const poolService = new PoolService(factory);
-        poolService.addClientForPool(params.asset0, params.asset1, client);
+        const pools = new Pools(factory);
+        pools.addClientForPool(params.asset0, params.asset1, client);
 
         client.on("close", () => {
-            poolService.removeClientForPool(params.asset0, params.asset1, client);
+            pools.removeClientForPool(params.asset0, params.asset1, client);
         });
     });
 

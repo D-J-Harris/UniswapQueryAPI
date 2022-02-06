@@ -1,15 +1,13 @@
-import { Trade, TradeType, TokenAmount, Fetcher, Route, ChainId, Percent } from "@uniswap/sdk";
+import { Trade, TradeType, TokenAmount, Fetcher, Route, Percent } from "@uniswap/sdk";
 import { ethers } from "ethers";
-import { token_attrs, keys } from "../resources/constants.js"
+import { token_attrs, keys, abis } from "../resources/constants.js"
 import GraphQueryService from "./GraphQueryService.js";
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const IUniswapV2Factory = require("@uniswap/v2-core/build/IUniswapV2Factory.json");
-const IUniswapV2Pair = require("@uniswap/v2-core/build/IUniswapV2Pair.json");
-const IUniswapV2ERC20 = require("@uniswap/v2-core/build/IUniswapV2ERC20.json");
-const IUniswapV2Router02 = require("@uniswap/v2-periphery/build/IUniswapV2Router02.json");
-
+/**
+ * service for interacting with the uniswap SDK, for getting data and trading.
+ * defined with a Factory instance, which defines the network-specific parameters as well as aiding in
+ * defining network-specific asset token addresses
+ */
 class UniswapService {
 
     constructor(factory){
@@ -19,8 +17,8 @@ class UniswapService {
         this.provider = new ethers.providers.InfuraProvider(factory.networkName, keys.INFURA_ID);
         this.account = signer.connect(this.provider);
 
-        this.factoryContract = new ethers.Contract(factory.factoryAddr, IUniswapV2Factory.abi, this.account);
-        this.router02Contract = new ethers.Contract(factory.router02Addr, IUniswapV2Router02.abi, this.account);
+        this.factoryContract = new ethers.Contract(factory.factoryAddr, abis.IUniswapV2FactoryABI, this.account);
+        this.router02Contract = new ethers.Contract(factory.router02Addr, abis.IUniswapV2Router02ABI, this.account);
         this.graphQueryService = new GraphQueryService();
     }
 
@@ -28,6 +26,7 @@ class UniswapService {
         return `0x${amount.raw.toString(16)}`;
     }
 
+    // get token address for asset, if defined by the project
     getTokenAddress(asset) {
         try {
             return ethers.utils.getAddress(token_attrs[asset][this.factory.networkName]);
@@ -36,11 +35,13 @@ class UniswapService {
         }
     }
 
+    // returns Token object for asset string
     async getToken(asset) {
         const tokenAddr = this.getTokenAddress(asset)
         return await Fetcher.fetchTokenData(this.factory.chainId, tokenAddr, this.provider);
     }
 
+    // returns Pair object for asset string pair
     async getPair(asset0, asset1) {
         const token0 = await this.getToken(asset0);
         const token1 = await this.getToken(asset1);
@@ -51,11 +52,12 @@ class UniswapService {
         }
     }
 
+    // returns ethers.Contract object for the asset pair pool
     async getPairContract(asset0, asset1) {
         const token0 = await this.getToken(asset0);
         const token1 = await this.getToken(asset1);
         const pairAddr = await this.factoryContract.getPair(token0.address, token1.address);
-        return new ethers.Contract(pairAddr, IUniswapV2Pair.abi, this.account);
+        return new ethers.Contract(pairAddr, abis.IUniswapV2PairABI, this.account);
     }
 
     /**
@@ -95,7 +97,7 @@ class UniswapService {
         
         const token0 = await this.getToken(asset0);
         const token1 = await this.getToken(asset1);
-        const token0Contract = new ethers.Contract(token0.address, IUniswapV2ERC20.abi, this.account);
+        const token0Contract = new ethers.Contract(token0.address, abis.IUniswapV2ERC20ABI, this.account);
 
         const pair = await this.getPair(asset0, asset1);
         const route = new Route([pair], token0);

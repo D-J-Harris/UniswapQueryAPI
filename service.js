@@ -13,10 +13,10 @@ const server = app.listen(port, () => {
 });
 FeedWebsocket(server);
 
+/**
+ * GET REST endpoint - returns data for pool defined by factory
+ */
 app.get("/price/:factory/:asset0/:asset1", async (req, res, next) => {
-
-    // need some assertions
-
     try {
         const factory = new Factory(req.params.factory);
         const service = new UniswapService(factory);
@@ -30,6 +30,9 @@ app.get("/price/:factory/:asset0/:asset1", async (req, res, next) => {
     }
 });
 
+/**
+ * POST REST endpoint = places a trade for specified asset path (Ropsten network only)
+ */
 app.post("/trade", async (req, res, next) => {
     try {
         const factory = new Factory("ropsten");

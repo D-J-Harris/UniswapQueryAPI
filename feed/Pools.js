@@ -1,7 +1,7 @@
-import PoolHelper from "./PoolHelper.js";
+import Pool from "./Pool.js";
 import UniswapService from "../services/UniswapService.js";
 
-class PoolService {
+class Pools {
 
     constructor(factory) {
         this.pools = new Map();
@@ -16,9 +16,9 @@ class PoolService {
         } else {
             try {
                 const poolContract = await this.uniswapService.getPairContract(asset0, asset1);
-                const poolHelper = new PoolHelper(poolContract);
-                poolHelper.addClient(client);
-                this.pools.set(poolKey, poolHelper);
+                const pool = new Pool(poolContract);
+                pool.addClient(client);
+                this.pools.set(poolKey, pool);
             } catch (error) {
                 client.terminate()
                 throw Error(error);
@@ -37,4 +37,4 @@ class PoolService {
     }
 }
 
-export default PoolService;
+export default Pools;
