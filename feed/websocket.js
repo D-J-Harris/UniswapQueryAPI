@@ -1,12 +1,12 @@
 import { WebSocketServer } from "ws";
 import url from 'url';
 
-import Pools from "./Pools.js"
+import ClientPoolTracker from "./ClientPoolTracker.js"
 import Factory from "../resources/factories.js";
 
 /**
  * websocket server hooked into the Express server.
- * client on connection/close actions additionally update a PoolService, tracking clients listening
+ * client on connection/close actions additionally update a ClientPoolTracker, tracking clients listening
  * to pool updates for that factory/pool combination
  */
 export default (expressServer) => {
@@ -26,7 +26,7 @@ export default (expressServer) => {
         client.send(JSON.stringify({message: `Connected to ${params.factory} with ${params.asset0}/${params.asset1}`}));
 
         const factory = new Factory(params.factory);
-        const pools = new Pools(factory);
+        const pools = new ClientPoolTracker(factory);
         pools.addClientForPool(params.asset0, params.asset1, client);
 
         client.on("close", () => {

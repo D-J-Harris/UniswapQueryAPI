@@ -1,4 +1,8 @@
 
+/**
+ * object tracking clients and invoking start/stop listen commands on Pair Contracts
+ * when the Pool is initially filled / empty respectively
+ */
 class Pool {
 
     constructor(contract) {
@@ -20,6 +24,7 @@ class Pool {
         }
     }
 
+    // hook a listener onto various Pair events and transmit to all listening clients
     listenForEvents() {
         console.log("Started listening for events");
         this.contract.on("Swap", (sender, amount0In, amount1In, amount0Out, amount1Out, to) => {
@@ -61,6 +66,7 @@ class Pool {
         })
     }
 
+    // pool is empty, remove all listeners on contract
     stopListenForEvents() {
         console.log("Stopped listening for events");
         this.contract.removeAllListeners();

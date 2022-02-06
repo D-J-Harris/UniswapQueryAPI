@@ -1,24 +1,29 @@
 import Pool from "./Pool.js";
 import UniswapService from "../services/UniswapService.js";
 
-class Pools {
+/**
+ * class tracking Pool objects, which define client lists that listen to events for a particular pool.
+ * constructed with a factory specific to the network, but with a static pools parameter for global pool tracking
+ */
+class ClientPoolTracker {
+
+    static pools = new Map();
 
     constructor(factory) {
-        this.pools = new Map();
         this.uniswapService = new UniswapService(factory);
     }
 
     async addClientForPool(asset0, asset1, client) {
         console.log(`Adding client for pool ${asset0}/${asset1}`)
         const poolKey = this.getPoolKey(asset0, asset1);
-        if (this.pools.has(poolKey)) {
-            this.pools.get(poolKey).addClient(client);
+        if (ClientPoolTracker.pools.has(poolKey)) {
+            ClientPoolTracker.pools.get(poolKey).addClient(client);
         } else {
             try {
                 const poolContract = await this.uniswapService.getPairContract(asset0, asset1);
                 const pool = new Pool(poolContract);
                 pool.addClient(client);
-                this.pools.set(poolKey, pool);
+                ClientPoolTracker.pools.set(poolKey, pool);
             } catch (error) {
                 client.terminate()
                 throw Error(error);
@@ -29,7 +34,7 @@ class Pools {
     async removeClientForPool(asset0, asset1, client) {
         console.log(`Removing client for pool ${asset0}/${asset1} client`)
         const poolKey = this.getPoolKey(asset0, asset1);
-        this.pools.get(poolKey).removeClient(client);
+        ClientPoolTracker.pools.get(poolKey).removeClient(client);
     }
 
     getPoolKey(asset0, asset1) {
@@ -37,4 +42,4 @@ class Pools {
     }
 }
 
-export default Pools;
+export default ClientPoolTracker;
