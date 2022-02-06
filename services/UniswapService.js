@@ -12,18 +12,16 @@ const IUniswapV2Router02 = require("@uniswap/v2-periphery/build/IUniswapV2Router
 
 class UniswapService {
 
-    constructor(){
-        const infuraProjectId = "4292f50a8b9d490593bca2eba40a8c4b";
+    constructor(factory){
         const privateKey = "0x64f7b5bd012958ddcb04089fe67195ad6fef399a4b71267844b34b5357d4da02";
         const signer = new ethers.Wallet(privateKey);
-        this.chainId = ChainId.MAINNET;
-        this.provider = new ethers.providers.getDefaultProvider({ name: 'homestead', chainId: this.chainId });
+
+        this.factory = factory;
+        this.provider = new ethers.providers.getDefaultProvider({ name: factory.networkName, chainId: factory.chainId });
         this.account = signer.connect(this.provider);
 
-        const factoryAddr = ethers.utils.getAddress("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f");
-        this.router02Addr = ethers.utils.getAddress("0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D");
-        this.factoryContract = new ethers.Contract(factoryAddr, IUniswapV2Factory.abi, this.account);
-        this.router02Contract = new ethers.Contract(this.router02Addr, IUniswapV2Router02.abi, this.account);
+        this.factoryContract = new ethers.Contract(factory.factoryAddr, IUniswapV2Factory.abi, this.account);
+        this.router02Contract = new ethers.Contract(factory.router02Addr, IUniswapV2Router02.abi, this.account);
 
         this.graphQueryService = new GraphQueryService();
     }
@@ -33,31 +31,25 @@ class UniswapService {
     }
 
     async getPairContract(asset0, asset1) {
-        const tokenAddr0 = ethers.utils.getAddress(token_attrs[asset0].address);
-        const tokenAddr1 = ethers.utils.getAddress(token_attrs[asset1].address);
+        const tokenAddr0 = ethers.utils.getAddress(token_attrs[asset0][this.factory.networkName]);
+        const tokenAddr1 = ethers.utils.getAddress(token_attrs[asset1][this.factory.networkName]);
         const pairAddr = await this.factoryContract.getPair(tokenAddr0, tokenAddr1);
         return new ethers.Contract(pairAddr, IUniswapV2Pair.abi, this.account);
     }
 
     async getToken(asset) {
-        const tokenAddr = ethers.utils.getAddress(token_attrs[asset].address);
+        const tokenAddr = ethers.utils.getAddress(token_attrs[asset][this.factory.networkName]);
         return await Fetcher.fetchTokenData(this.chainId, tokenAddr, this.provider);
     }
 
     async getPrice(asset0, asset1) {
         console.log(`Running getPrice() for ${asset0}/${asset1}`)
 
-        const tokenAddr0 = ethers.utils.getAddress(token_attrs[asset0].address);
-        const tokenAddr1 = ethers.utils.getAddress(token_attrs[asset1].address);
+        const tokenAddr0 = ethers.utils.getAddress(token_attrs[asset0][this.factory.networkName]);
+        const tokenAddr1 = ethers.utils.getAddress(token_attrs[asset1][this.factory.networkName]);
 
         const data = await this.graphQueryService.getPriceDataForPair(tokenAddr0, tokenAddr1);
         return data;
-
-        // const pairContract = await this.getPairContract(asset0, asset1);
-        // const reserves = await pairContract.getReserves();
-        // const reserve0 = ethers.utils.formatUnits(reserves.reserve0, token_attrs[asset0].decimals);
-        // const reserve1 = ethers.utils.formatUnits(reserves.reserve1, token_attrs[asset1].decimals)
-        // return [reserve0, reserve1];
     }
 
     async trade(asset0, asset1, amountIn, slippage) {
@@ -67,7 +59,7 @@ class UniswapService {
         const token0 = await this.getToken(asset0);
         const token1 = await this.getToken(asset1);
 
-        const token0Contract = new ethers.Contract(token_attrs[asset0].address, IUniswapV2ERC20.abi, this.account);
+        const token0Contract = new ethers.Contract(token_attrs[asset0][this.factory.networkName], IUniswapV2ERC20.abi, this.account);
 
         const pair = await Fetcher.fetchPairData(token0, token1, this.provider);
         const route = new Route([pair], token0);

@@ -3,9 +3,9 @@ import UniswapService from "../services/UniswapService.js";
 
 class PoolService {
 
-    constructor() {
+    constructor(factory) {
         this.pools = new Map();
-        this.uniswapService = new UniswapService();
+        this.uniswapService = new UniswapService(factory);
     }
 
     async addClientForPool(asset0, asset1, client) {
@@ -28,7 +28,7 @@ class PoolService {
     }
 
     getPoolKey(asset0, asset1) {
-        return (asset0.localeCompare(asset1) == -1)? `${asset0}/${asset1}`: `${asset1}/${asset0}`;
+        return this.uniswapService.factory.networkName + ((asset0.localeCompare(asset1) == -1)? `${asset0}/${asset1}`: `${asset1}/${asset0}`);
     }
 }
 
