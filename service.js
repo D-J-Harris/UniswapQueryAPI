@@ -22,7 +22,7 @@ app.get("/price/:factory/:asset0/:asset1", async (req, res, next) => {
         const service = new UniswapService(factory);
         const asset0 = req.params.asset0;
         const asset1 = req.params.asset1;
-        const data = await service.getPrice(asset0, asset1);
+        const data = await service.getPriceDataForPair(asset0, asset1);
         res.send(data);
 
     } catch (error) {

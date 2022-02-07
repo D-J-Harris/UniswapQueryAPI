@@ -46,7 +46,11 @@ In all cases, functionality can be tested using [Postman](https://www.postman.co
 
 - The data available through the Uniswap V2 contracts for pairs do not give thorough insights into pricing - this could potentially be improved through gathering further data (execution/mid prices) from the [Trade Object](https://docs.uniswap.org/sdk/2.0.0/reference/trade)
 - Unfortunately, the subgraph is only available for the ethereum mainnet and so is limited to requests there
-- The endpoint will return an error if the pool does not exist - especially for testnets, this can be common
+- I was unsure how to internally represent tokens, since the key bit of data is token address for a given network - rather than put this responsibility on the caller, I decided to define assets that the service could handle across all supported networks internally. This is easily extendable
+
+#### Example
+
+``http://localhost:3000/price/homestead/DAI/WETH``
 
 ### 2 - GET Websocket endpoint
 
@@ -58,6 +62,12 @@ In all cases, functionality can be tested using [Postman](https://www.postman.co
 
 - The biggest challenge with this endpoint revolved around the idea of spinning up and managing multiple websocket servers for different endpoints on-demand. Since only one server can be listening on a particular port, I decided to have one server listening to requests, and manage dynamic "client pools" that would be notified by the ``ethers`` [Pair Contract](https://docs.uniswap.org/protocol/V2/reference/smart-contracts/pair)
 - For some reason, [``ethers`` contract events](https://docs.ethers.io/v5/api/contract/contract/#Contract--events) would "remember" events in-between ``removeAllListeners`` and subsequent ``on`` hook creation, causing an avalanche of input when clients reconncet to the websocket. I couldn't work out the issue - maybe [with reason?](https://github.com/ethers-io/ethers.js/issues/391)
+
+#### Example
+
+``ws://localhost:3000/feed?factory=homestead&asset0=USDC&asset1=WETH``
+
+``ws://localhost:3000/feed?factory=ropsten&asset0=DAI&asset1=WETH`` (goes well with example for POST REST endpoint below)
 
 ### 3 - POST REST endpoint
 
@@ -82,3 +92,15 @@ The trade endpoint requires a JSON payload in the request, of the following form
 - The biggest challenge here regarded signing transactions - most crucially, approving tokens to be swapped (which is in itself needs signing). Ideally, a user should approve the token contract to be allowed to swap a "large" amount, so it only hopefully has to be done once - however the approach taken here is to run an approval transaction for the exact amount being swapped each time. This leads to higher run times and gas fees, however runs no risk of failing a transaction (i.e. if number of tokens to swap is very high)
 - Due to fees and not wanting to use real money, the endpoint was hardcoded to use the Ropsten test network (which the proejct wallet has funds for from a faucet)
 - Ideally the server private key / Infura ID would be in a process environment variable etc., however I am fine in this instance of openly saving keys for a throwaway wallet
+
+#### Example
+
+```
+{
+    "path": ["WETH", "DAI"],
+    "amountIn": "0.2",
+    "slippage": 20
+}
+```
+
+

@@ -66,8 +66,8 @@ class UniswapService {
      * @param {String} asset1 : string representation of asset e.g. USDC
      * @returns : [always] basic pair data from Uniswap SDK; [mainnet] data queried from Uniswap subgraph
      */
-    async getPrice(asset0, asset1) {
-        console.log(`Running getPrice() for ${asset0}/${asset1} on network ${this.factory.networkName}`)
+    async getPriceDataForPair(asset0, asset1) {
+        console.log(`Running getPriceDataForPair() for ${asset0}/${asset1} on network ${this.factory.networkName}`)
 
         const pair = await this.getPair(asset0, asset1);
         const basicData = {
@@ -84,10 +84,10 @@ class UniswapService {
 
     /**
      * 
-     * @param {*} asset0 : string representation of asset e.g. WETH
-     * @param {*} asset1 : string representation of asset e.g. USDC
-     * @param {*} amountIn : exact amount (in tokens) of asset0 to be swapped for asset1
-     * @param {*} slippage : slippage percentage (whole number 0-100) used to calculate minimumAmountOut
+     * @param {String} asset0 : string representation of asset to swap e.g. WETH
+     * @param {String} asset1 : string representation of asset returned e.g. USDC
+     * @param {String} amountIn : exact amount (in tokens) of asset0 to be swapped for asset1
+     * @param {Number} slippage : slippage percentage (whole number 0-100) used to calculate minimumAmountOut
      * @returns : transaction receipt of trade
      */
     async trade(asset0, asset1, amountIn, slippage) {
